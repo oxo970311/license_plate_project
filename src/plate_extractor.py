@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import glob
+import os
 from matplotlib import pyplot as plt
 
 img_path = glob.glob('../img/car_*.jpg')
@@ -10,6 +11,7 @@ start_point = (-1, -1)
 end_point = (-1, -1)
 roi_list = []
 car_list = []
+
 
 def draw_rectangle(event, x, y, flags, param):
     global drawing, start_point, end_point
@@ -55,6 +57,26 @@ for path in img_path:
             exit()
 
 print(roi_list)
+
+save_dir = '../extracted_plates'
+os.makedirs(save_dir, exist_ok=True)
+
+roi_index = 0
+img_index = 0
+for i, car in enumerate(car_list):
+    # 예: 이미지 1장당 ROI 2개씩 있다고 가정
+    rois_per_image = 2  # ← 여기서 이미지당 ROI 개수 조절
+
+    for j in range(rois_per_image):
+        if roi_index >= len(roi_list):
+            break
+        (x1, y1), (x2, y2) = roi_list[roi_index]
+        roi = car[y1:y2, x1:x2]  # NumPy slicing
+
+        save_path = os.path.join(save_dir, f'car_{i + 1}_roi_{j + 1}.jpg')
+        cv2.imwrite(save_path, roi)
+        print(f"저장 완료: {save_path}")
+        roi_index += 1
 
 # car_test = cv2.imread('../img/car_01.jpg')
 # cv2.imshow('car_test', car_test)
